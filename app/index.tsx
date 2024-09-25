@@ -1,5 +1,5 @@
-import { clear, getAllItems, setItem } from "@/utils/AsyncStorage";
-import React, { useState } from "react";
+import { clear, getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
+import React, { useEffect, useState } from "react";
 import { Button, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 
@@ -8,22 +8,42 @@ export default function Index() {
 
   const toggleDate = (date: string) => {
     const emptyObject = {};
+    console.log(touchedDate);
+    // Controllo se è una data con il dot oppure no
     if (Object.keys(touchedDate).find((k) => k === date)) {
       Object.assign(emptyObject, touchedDate);
       delete emptyObject[date];
       setTouchedDate(emptyObject);
+      setItem("dates", emptyObject);
     } else {
-      setItem("dates", touchedDate);
-
-      setTouchedDate({
-        ...touchedDate,
+      const obj = {
         [date]: {
           selectedDotColor: "orange",
           marked: true,
         },
+      };
+
+      mergeItem("dates", obj);
+
+      setTouchedDate({
+        ...touchedDate,
+        ...obj,
       });
     }
   };
+
+  useEffect(() => {
+    if (
+      Object.keys(touchedDate).length === 0 &&
+      touchedDate.constructor === Object
+    ) {
+      getAllItems().then((res) => {
+        if (res && "dates" in res) {
+          setTouchedDate(res.dates as object);
+        }
+      });
+    }
+  }, []);
 
   return (
     <View
@@ -45,6 +65,7 @@ export default function Index() {
         title="Clear"
         onPress={() => {
           clear();
+          setTouchedDate({});
         }}
       ></Button>
       <Button
@@ -52,7 +73,6 @@ export default function Index() {
         onPress={() => {
           getAllItems().then((res) => {
             console.log(res);
-            setTouchedDate(res);
           });
         }}
       ></Button>

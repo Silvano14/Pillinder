@@ -26,7 +26,7 @@ export const removeItem = async (key: string) => {
   }
 };
 
-export const mergeItem = async (key: string, value: string) => {
+export const mergeItem = async (key: string, value: object) => {
   try {
     await AsyncStorage.mergeItem(key, JSON.stringify(value));
   } catch (error) {
