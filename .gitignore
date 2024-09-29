@@ -18,3 +18,11 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
+# Ignora la cache di Yarn
+.yarn/cache
+# Ignora le configurazioni locali
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

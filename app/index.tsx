@@ -3,15 +3,28 @@ import React, { useEffect, useState } from "react";
 import { Button, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 
+type DateInfo = {
+  year: number;
+  month: number;
+  day: number;
+  timestamp: number;
+  dateString: string;
+};
+
+type TouchedObjType = {
+  [key: string]: { selectedDotColor: string; marked: boolean };
+};
+
 export default function Index() {
-  const [touchedDate, setTouchedDate] = useState<object>({});
+  const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
 
   const toggleDate = (date: string) => {
-    const emptyObject = {};
-    console.log(touchedDate);
+    const emptyObject: TouchedObjType = {};
     // Controllo se è una data con il dot oppure no
     if (Object.keys(touchedDate).find((k) => k === date)) {
       Object.assign(emptyObject, touchedDate);
+      console.log(touchedDate);
+
       delete emptyObject[date];
       setTouchedDate(emptyObject);
       setItem("dates", emptyObject);
@@ -39,7 +52,7 @@ export default function Index() {
     ) {
       getAllItems().then((res) => {
         if (res && "dates" in res) {
-          setTouchedDate(res.dates as object);
+          setTouchedDate(res.dates as TouchedObjType);
         }
       });
     }
@@ -54,7 +67,7 @@ export default function Index() {
       }}
     >
       <Calendar
-        onDayPress={(day) => {
+        onDayPress={(day: DateInfo) => {
           toggleDate(day.dateString);
         }}
         markedDates={{
