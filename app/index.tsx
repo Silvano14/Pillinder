@@ -12,14 +12,14 @@ type DateInfo = {
 };
 
 type TouchedObjType = {
-  [key: string]: { selectedDotColor: string; marked: boolean };
+  [key: string]: { selectedDotColor: string; marked: boolean }; // Use string as key type
 };
 
 export default function Index() {
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
 
   const toggleDate = (date: string) => {
-    const emptyObject: TouchedObjType = {};
+    const emptyObject: TouchedObjType = {}; // Ensure emptyObject is of type TouchedObjType
     // Controllo se è una data con il dot oppure no
     if (Object.keys(touchedDate).find((k) => k === date)) {
       Object.assign(emptyObject, touchedDate);
@@ -59,15 +59,10 @@ export default function Index() {
   }, []);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <View>
       <Calendar
-        onDayPress={(day: DateInfo) => {
+        onDayPress={(day) => {
+          console.log(day);
           toggleDate(day.dateString);
         }}
         markedDates={{
