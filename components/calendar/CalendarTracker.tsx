@@ -2,6 +2,7 @@ import { clear, getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
 import React, { useEffect, useState } from "react";
 import { Button } from "react-native";
 import { Calendar } from "react-native-calendars";
+import Notify from "../notifications/Notify";
 
 type TouchedObjType = {
   [key: string]: { selectedDotColor: string; marked: boolean }; // Use string as key type
