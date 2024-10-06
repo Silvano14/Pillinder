@@ -1,13 +1,29 @@
 import { CalendarTracker } from "@/components/calendar/CalendarTracker";
-import Notify from "@/components/notifications/Notify";
+import { UserSettings } from "@/components/settings/UserSettings";
+import { Feather } from "@expo/vector-icons";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { View } from "react-native";
 
+const Stack = createNativeStackNavigator();
 export default function Index() {
   return (
-    <View>
-      <CalendarTracker></CalendarTracker>
-      <Notify />
-    </View>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Calendar"
+        component={CalendarTracker}
+        options={({ navigation }) => ({
+          title: "Welcome",
+          headerLeft: () => (
+            <Feather
+              name="settings"
+              size={24}
+              color="black"
+              onPress={() => navigation.navigate("Settings")}
+            />
+          ),
+        })}
+      />
+      <Stack.Screen name="Settings" component={UserSettings} />
+    </Stack.Navigator>
   );
 }
