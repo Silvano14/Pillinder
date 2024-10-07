@@ -1,9 +1,7 @@
 import { clear, getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
 import React, { useEffect, useState } from "react";
-import { Button, View } from "react-native";
+import { Button, StyleSheet, View } from "react-native";
 import { Calendar } from "react-native-calendars";
-import Notify from "../notifications/Notify";
-import { Feather } from "@expo/vector-icons";
 
 type TouchedObjType = {
   [key: string]: { selectedDotColor: string; marked: boolean }; // Use string as key type
@@ -53,8 +51,7 @@ export const CalendarTracker = () => {
   }, []);
 
   return (
-    <>
-      <View></View>
+    <View style={styles.container}>
       <Calendar
         onDayPress={(day) => {
           console.log(day);
@@ -79,6 +76,12 @@ export const CalendarTracker = () => {
           });
         }}
       ></Button>
-    </>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

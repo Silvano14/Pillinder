@@ -1,29 +1,80 @@
 import { CalendarTracker } from "@/components/calendar/CalendarTracker";
-import { UserSettings } from "@/components/settings/UserSettings";
-import { Feather } from "@expo/vector-icons";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import PillForm from "@/components/settings/PillForm";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { CommonActions } from "@react-navigation/native";
 import React from "react";
+import { BottomNavigation } from "react-native-paper";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
 export default function Index() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Calendar"
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      tabBar={({ navigation, state, descriptors, insets }) => (
+        <BottomNavigation.Bar
+          navigationState={state}
+          safeAreaInsets={insets}
+          onTabPress={({ route, preventDefault }) => {
+            console.log(route.key);
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (event.defaultPrevented) {
+              preventDefault();
+            } else {
+              navigation.dispatch({
+                ...CommonActions.navigate(route.name, route.params),
+                target: state.key,
+              });
+            }
+          }}
+          renderIcon={({ route, focused, color }) => {
+            const { options } = descriptors[route.key];
+            if (options.tabBarIcon) {
+              return options.tabBarIcon({ focused, color, size: 24 });
+            }
+
+            return null;
+          }}
+          getLabelText={({ route }) => {
+            const { options } = descriptors[route.key];
+            const label =
+              options.tabBarLabel ?? options.title !== undefined
+                ? options.title
+                : route.title;
+
+            return label;
+          }}
+        />
+      )}
+    >
+      <Tab.Screen
+        name="calendar"
         component={CalendarTracker}
-        options={({ navigation }) => ({
-          title: "Welcome",
-          headerLeft: () => (
-            <Feather
-              name="settings"
-              size={24}
-              color="black"
-              onPress={() => navigation.navigate("Settings")}
-            />
-          ),
-        })}
+        options={{
+          tabBarLabel: "Calendar",
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="home" size={size} color={color} />;
+          },
+        }}
       />
-      <Stack.Screen name="Settings" component={UserSettings} />
-    </Stack.Navigator>
+      <Tab.Screen
+        name="settings"
+        component={PillForm}
+        options={{
+          tabBarLabel: "Settings",
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="cog" size={size} color={color} />;
+          },
+        }}
+      />
+    </Tab.Navigator>
   );
 }
