@@ -19,7 +19,6 @@ export default function Index() {
           navigationState={state}
           safeAreaInsets={insets}
           onTabPress={({ route, preventDefault }) => {
-            console.log(route.key);
             const event = navigation.emit({
               type: "tabPress",
               target: route.key,

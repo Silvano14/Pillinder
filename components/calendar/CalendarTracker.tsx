@@ -1,41 +1,16 @@
-import { clear, getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
+import { getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
 import React, { useEffect, useState } from "react";
-import { Button, StyleSheet, View } from "react-native";
+import { TouchableWithoutFeedback, View } from "react-native";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Calendar } from "react-native-calendars";
+import { Text } from "react-native-paper";
 
 type TouchedObjType = {
-  [key: string]: { selectedDotColor: string; marked: boolean }; // Use string as key type
+  [key: string]: { selectedDotColor: string; marked: boolean };
 };
 
 export const CalendarTracker = () => {
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
-
-  const toggleDate = (date: string) => {
-    const emptyObject: TouchedObjType = {}; // Ensure emptyObject is of type TouchedObjType
-    // Controllo se è una data con il dot oppure no
-    if (Object.keys(touchedDate).find((k) => k === date)) {
-      Object.assign(emptyObject, touchedDate);
-      console.log(touchedDate);
-
-      delete emptyObject[date];
-      setTouchedDate(emptyObject);
-      setItem("dates", emptyObject);
-    } else {
-      const obj = {
-        [date]: {
-          selectedDotColor: "orange",
-          marked: true,
-        },
-      };
-
-      mergeItem("dates", obj);
-
-      setTouchedDate({
-        ...touchedDate,
-        ...obj,
-      });
-    }
-  };
 
   useEffect(() => {
     if (
@@ -50,38 +25,83 @@ export const CalendarTracker = () => {
     }
   }, []);
 
+  const toggleDate = (date: string) => {
+    const emptyObject: TouchedObjType = {};
+
+    // Controllo se è una data con il dot oppure no
+    if (Object.keys(touchedDate).find((k) => k === date)) {
+      Object.assign(emptyObject, touchedDate);
+
+      delete emptyObject[date];
+      setTouchedDate(emptyObject);
+      setItem("dates", emptyObject);
+    } else {
+      const obj = {
+        [date]: {
+          marked: true,
+        },
+      };
+
+      mergeItem("dates", obj);
+
+      setTouchedDate({
+        ...touchedDate,
+        ...obj,
+      });
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View>
       <Calendar
+        markingType="custom"
         onDayPress={(day) => {
-          console.log(day);
           toggleDate(day.dateString);
         }}
         markedDates={{
           ...touchedDate,
         }}
+        dayComponent={({ date, state }) => {
+          const keys = Object.keys(touchedDate);
+          const isSelected = keys.includes(date?.dateString ?? "");
+          const isDisabled = state === "disabled";
+          return (
+            <TouchableWithoutFeedback
+              disabled={state === "disabled"}
+              onPress={() => toggleDate(date?.dateString)}
+            >
+              <View
+                style={{
+                  opacity: isDisabled ? 0.5 : 1,
+                  borderRadius: 10,
+                  borderColor: "black",
+                  borderWidth: 0.5,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 50,
+                  height: 95,
+                }}
+              >
+                <Text
+                  style={{
+                    padding: 5,
+                    textAlign: "center",
+                    color: state === "disabled" ? "gray" : "black",
+                  }}
+                >
+                  {date?.day}
+                </Text>
+                <BouncyCheckbox
+                  disabled={isDisabled}
+                  isChecked={isSelected}
+                  disableText
+                  onPress={() => toggleDate(date?.dateString)}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          );
+        }}
       />
-      <Button
-        title="Clear"
-        onPress={() => {
-          clear();
-          setTouchedDate({});
-        }}
-      ></Button>
-      <Button
-        title="getAllkeys"
-        onPress={() => {
-          getAllItems().then((res) => {
-            console.log(res);
-          });
-        }}
-      ></Button>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

@@ -1,66 +1,26 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { clear } from "@/utils/AsyncStorage";
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import PillPausePicker from "../picker/PillPauserPicker";
+import { StyleSheet, Text, View } from "react-native";
+import { Button } from "react-native-paper";
+import { PillType } from "../pills/PillType";
 
 const PillForm = () => {
   const [pillType, setPillType] = useState("");
-  const [pauseDays, setPauseDays] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Function to handle date selection
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || startDate;
-    setShowDatePicker(false);
-    setStartDate(currentDate);
-  };
-
-  const handleSubmit = () => {
-    // Submit form data (You can add form validation here)
-    console.log({
-      pillType,
-      pauseDays,
-      startDate: startDate.toLocaleDateString(),
-    });
-    // Reset form after submit
-    setPillType("");
-    setPauseDays("");
-    setStartDate(new Date());
+  const clearData = () => {
+    clear();
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Pill Type</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter pill type"
-        value={pillType}
-        onChangeText={(text) => setPillType(text)}
-      />
+      <PillType />
 
-      <Text style={styles.label}>Pause Days</Text>
-      <PillPausePicker />
-
-      <Text style={styles.label}>Start Date</Text>
-      <Button
-        title="Select Start Date"
-        onPress={() => setShowDatePicker(true)}
-      />
-      {showDatePicker && (
-        <DateTimePicker
-          value={startDate}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-        />
-      )}
-      <Text style={styles.dateText}>
-        Selected: {startDate.toLocaleDateString()}
-      </Text>
-
-      <Button title="Submit" onPress={handleSubmit} />
+      <View>
+        <Button onPress={clearData} mode="contained-tonal">
+          Clear data
+        </Button>
+      </View>
     </View>
   );
 };
