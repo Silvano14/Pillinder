@@ -1,5 +1,6 @@
+import { AppSettingsContext } from "@/context/AppSettingsContextProvider";
 import { getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Calendar } from "react-native-calendars";
@@ -10,7 +11,15 @@ type TouchedObjType = {
 };
 
 export const CalendarTracker = () => {
+  const { appSettings, appSettingsInitialized } =
+    useContext(AppSettingsContext);
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
+
+  useEffect(() => {
+    if (appSettingsInitialized) {
+      setTouchedDate(appSettings);
+    }
+  }, [appSettings, appSettingsInitialized]);
 
   useEffect(() => {
     if (
@@ -23,7 +32,7 @@ export const CalendarTracker = () => {
         }
       });
     }
-  }, []);
+  }, [appSettingsInitialized]);
 
   const toggleDate = (date: string) => {
     const emptyObject: TouchedObjType = {};

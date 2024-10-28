@@ -1,15 +1,49 @@
 import { registerRootComponent } from "expo";
 import { PermissionStatus } from "expo-modules-core";
 import * as Notifications from "expo-notifications";
-import { Notification } from "expo-notifications";
-import React, { useEffect, useState } from "react";
-import { Button, StyleSheet, View } from "react-native";
+import {
+  DailyTriggerInput,
+  Notification,
+  NotificationResponse,
+} from "expo-notifications";
+import React, { FC, useEffect, useState } from "react";
+import { Button } from "react-native-paper";
+import { DefaultSnackbar } from "../snackbar/DefaultSnackbar";
 
-const Notify = () => {
+Notifications.setNotificationCategoryAsync("welcome", [
+  {
+    buttonTitle: "Start",
+    identifier: "first",
+    options: {
+      opensAppToForeground: true,
+    },
+  },
+
+  {
+    buttonTitle: "Reject",
+    identifier: "second",
+    options: {
+      opensAppToForeground: false,
+    },
+  },
+  {
+    buttonTitle: "Respond with text",
+    identifier: "third",
+    textInput: {
+      submitButtonTitle: "Submit button",
+      placeholder: "Placeholder text",
+    },
+  },
+]);
+
+type Props = { trigger: DailyTriggerInput };
+
+const Notify: FC<Props> = ({ trigger }) => {
+  const [isVisibleSnackbar, setIsVisibleSnackbar] = useState(false);
   const [notificationPermissions, setNotificationPermissions] =
     useState<PermissionStatus>(PermissionStatus.UNDETERMINED);
 
-  const scheduleNotification = (seconds: number) => {
+  const scheduleNotification = () => {
     const schedulingOptions = {
       content: {
         title: "This is a notification",
@@ -17,17 +51,28 @@ const Notify = () => {
         sound: true,
         priority: Notifications.AndroidNotificationPriority.HIGH,
         color: "blue",
+        categoryIdentifier: "welcome",
       },
-      trigger: {
-        seconds: seconds,
-      },
+      trigger: { seconds: 2 },
     };
-    Notifications.scheduleNotificationAsync(schedulingOptions);
+    Notifications.scheduleNotificationAsync(schedulingOptions)
+      .then(() => {
+        setIsVisibleSnackbar(true);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleNotification = (notification: Notification) => {
-    const { title } = notification.request.content;
-    console.warn(title);
+    // Prende la notifica quando l'app è attiva
+    const content = notification.request.content;
+    console.warn("content", content);
+  };
+
+  const handleResponseNotification = (notification: NotificationResponse) => {
+    const content = notification.actionIdentifier;
+    console.warn("actionIdentifier", content);
   };
 
   const requestNotificationPermissions = async () => {
@@ -47,7 +92,22 @@ const Notify = () => {
     return () => listener.remove();
   }, [notificationPermissions]);
 
-  return <Button onPress={() => scheduleNotification(1)} title="Notify" />;
+  useEffect(() => {
+    if (notificationPermissions !== PermissionStatus.GRANTED) return;
+    const listener = Notifications.addNotificationResponseReceivedListener(
+      handleResponseNotification
+    );
+    return () => listener.remove();
+  }, [notificationPermissions]);
+
+  return (
+    <>
+      <Button mode="contained" onPress={() => scheduleNotification()}>
+        Schedule notifications
+      </Button>
+      <DefaultSnackbar visible={isVisibleSnackbar}></DefaultSnackbar>
+    </>
+  );
 };
 
 registerRootComponent(Notify);
