@@ -1,5 +1,5 @@
 import { CalendarTracker } from "@/components/calendar/CalendarTracker";
-import PillForm from "@/components/settings/PillForm";
+import Configuration from "@/components/settings/Configuration";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { CommonActions } from "@react-navigation/native";
 import React from "react";
@@ -66,7 +66,7 @@ export default function Index() {
       />
       <Tab.Screen
         name="settings"
-        component={PillForm}
+        component={Configuration}
         options={{
           tabBarLabel: "Settings",
           tabBarIcon: ({ color, size }) => {
