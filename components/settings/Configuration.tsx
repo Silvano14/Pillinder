@@ -1,6 +1,6 @@
 import { clear } from "@/utils/AsyncStorage";
-import { DailyTriggerInput } from "expo-notifications";
-import React, { useState } from "react";
+import * as Notifications from "expo-notifications";
+import React, { useEffect, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -11,25 +11,49 @@ import {
   View,
 } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import Toast, { ToastShowParams } from "react-native-toast-message";
 import Notify from "../notifications/Notify";
-import * as Notifications from "expo-notifications";
-import Toast from "react-native-toast-message";
+import { DailyTriggerInput } from "expo-notifications";
 
-const showToast = () => {
+const showToast = (
+  type: ToastShowParams["type"],
+  text1: ToastShowParams["text1"]
+) => {
   Toast.show({
-    type: "success",
-    text1: "Cancelled all notifications scheduled",
-    text2: "This is some something 👋",
+    type,
+    text1,
   });
 };
 const Configuration = () => {
-  const [dailyNotification, setDailyNotification] = useState<DailyTriggerInput>(
-    {
-      hour: 20,
-      minute: 0,
-      repeats: true,
+  const [dailyNotification, setDailyNotification] = useState<
+    | {
+        hour?: number;
+        minute?: number;
+        repeats: boolean;
+      }
+    | undefined
+  >();
+
+  const fetchScheduledNotifications = async () => {
+    try {
+      const notifications =
+        await Notifications.getAllScheduledNotificationsAsync();
+      console.log("notifications", notifications);
+      if (notifications.length) {
+        setDailyNotification({
+          hour: notifications[0].trigger.dateComponents.hour,
+          minute: notifications[0].trigger.dateComponents.minute,
+          repeats: true,
+        });
+      }
+    } catch (error) {
+      console.log("Errore nel recuperare le notifiche programmate:", error);
     }
-  );
+  };
+
+  useEffect(() => {
+    fetchScheduledNotifications();
+  }, []);
 
   const clearData = () => {
     clear();
@@ -37,8 +61,8 @@ const Configuration = () => {
 
   const onClearNotifications = () => {
     Notifications.cancelAllScheduledNotificationsAsync()
-      .then((data) => showToast())
-      .catch((data) => console.log(data));
+      .then(() => showToast("success", "Cancelled all notifications scheduled"))
+      .catch(() => showToast("error", "Error occured"));
   };
 
   return (
@@ -49,7 +73,7 @@ const Configuration = () => {
       >
         <View>
           <Button onPress={clearData} mode="contained-tonal">
-            Clear data
+            Clear all pills (restart app)
           </Button>
         </View>
 
@@ -60,11 +84,12 @@ const Configuration = () => {
               keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
               label={"Hour"}
               style={styles.input}
-              value={dailyNotification.hour ?? ""}
+              value={dailyNotification?.hour?.toString() ?? undefined}
               onChangeText={(e) => {
                 setDailyNotification({
                   ...dailyNotification,
                   hour: parseInt(e),
+                  repeats: true,
                 });
               }}
             />
@@ -72,19 +97,26 @@ const Configuration = () => {
               keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
               style={styles.input}
               label={"Minute"}
-              value={dailyNotification.minute ?? ""}
+              value={dailyNotification?.minute?.toString() ?? undefined}
               onChangeText={(e) => {
                 setDailyNotification({
                   ...dailyNotification,
                   minute: parseInt(e),
+                  repeats: true,
                 });
               }}
             />
           </View>
         </View>
-        <Notify trigger={dailyNotification}></Notify>
-        <Button mode="contained" onPress={onClearNotifications}>
-          Clear notifications
+        <Notify trigger={dailyNotification as DailyTriggerInput}></Notify>
+        <Button
+          mode="contained"
+          onPress={() => {
+            setDailyNotification(undefined);
+            onClearNotifications();
+          }}
+        >
+          Clear schedules
         </Button>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
@@ -99,8 +131,8 @@ const styles = StyleSheet.create({
   },
   containerNotifications: {
     padding: 15,
-    backgroundColor: "gray",
     borderRadius: 20,
+    borderWidth: 1,
   },
   input: {
     flex: 1,

@@ -3,13 +3,11 @@ import { PermissionStatus } from "expo-modules-core";
 import * as Notifications from "expo-notifications";
 import {
   DailyTriggerInput,
-  Notification,
   NotificationResponse,
   NotificationTriggerInput,
 } from "expo-notifications";
 import React, { FC, useEffect, useState } from "react";
 import { Button } from "react-native-paper";
-import { DefaultSnackbar } from "../snackbar/DefaultSnackbar";
 import Toast from "react-native-toast-message";
 
 Notifications.setNotificationCategoryAsync("welcome", [
@@ -48,45 +46,41 @@ const showToast = () => {
   });
 };
 
-type Props = { trigger: DailyTriggerInput };
+type Props = { trigger: DailyTriggerInput | undefined };
 
 const Notify: FC<Props> = ({ trigger }) => {
-  const [isVisibleSnackbar, setIsVisibleSnackbar] = useState(false);
   const [notificationPermissions, setNotificationPermissions] =
     useState<PermissionStatus>(PermissionStatus.UNDETERMINED);
+  const [isUserSetNotification, setIsUserSetNotification] = useState(false);
 
   const scheduleNotification = (
     trigger: NotificationTriggerInput = { seconds: 2 }
   ) => {
-    const schedulingOptions = {
-      content: {
-        title: "Pill reminder",
-        body: "You have to take the pill",
-        sound: true,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
-        color: "blue",
-        categoryIdentifier: "welcome",
-      },
-      trigger,
-    };
-    Notifications.scheduleNotificationAsync(schedulingOptions)
-      .then(() => {
-        setIsVisibleSnackbar(true);
-        showToast();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  const handleNotification = (notification: Notification) => {
-    // Prende la notifica quando l'app è attiva
-    const content = notification.request.content;
+    Notifications.cancelAllScheduledNotificationsAsync().then(() => {
+      setIsUserSetNotification(true);
+      const schedulingOptions = {
+        content: {
+          title: "Pill reminder",
+          body: "You have to take the pill",
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+          color: "blue",
+          categoryIdentifier: "welcome",
+        },
+        trigger,
+      };
+      Notifications.scheduleNotificationAsync(schedulingOptions)
+        .then(() => {
+          showToast();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
   };
 
   const handleResponseNotification = (notification: NotificationResponse) => {
     const { userText } = notification;
-
     if (userText) {
       const isNumber = parseInt(userText);
       if (!isNaN(isNumber)) {
@@ -108,26 +102,26 @@ const Notify: FC<Props> = ({ trigger }) => {
 
   useEffect(() => {
     if (notificationPermissions !== PermissionStatus.GRANTED) return;
-    const listener =
-      Notifications.addNotificationReceivedListener(handleNotification);
-    return () => listener.remove();
-  }, [notificationPermissions]);
-
-  useEffect(() => {
-    if (notificationPermissions !== PermissionStatus.GRANTED) return;
-    const listener = Notifications.addNotificationResponseReceivedListener(
-      handleResponseNotification
-    );
-    return () => listener.remove();
+    if (isUserSetNotification) {
+      const listener = Notifications.addNotificationResponseReceivedListener(
+        handleResponseNotification
+      );
+      return () => listener.remove();
+    }
   }, [notificationPermissions]);
 
   return (
-    <>
-      <Button mode="contained" onPress={() => scheduleNotification(trigger)}>
-        Schedule notifications
-      </Button>
-      <DefaultSnackbar visible={isVisibleSnackbar}></DefaultSnackbar>
-    </>
+    <Button
+      mode="contained"
+      style={{ opacity: trigger ? 1 : 0.5 }}
+      onPress={() => {
+        if (trigger) {
+          scheduleNotification(trigger);
+        }
+      }}
+    >
+      Schedule notifications
+    </Button>
   );
 };
 
