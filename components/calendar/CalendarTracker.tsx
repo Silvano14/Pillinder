@@ -1,6 +1,5 @@
-import { AppSettingsContext } from "@/context/AppSettingsContextProvider";
 import { getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Calendar } from "react-native-calendars";
@@ -11,17 +10,9 @@ type TouchedObjType = {
 };
 
 export const CalendarTracker = () => {
-  const { appSettings, appSettingsInitialized } =
-    useContext(AppSettingsContext);
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
 
-  useEffect(() => {
-    if (appSettingsInitialized) {
-      setTouchedDate(appSettings);
-    }
-  }, [appSettings, appSettingsInitialized]);
-
-  useEffect(() => {
+  const fetchData = () => {
     if (
       Object.keys(touchedDate).length === 0 &&
       touchedDate.constructor === Object
@@ -32,10 +23,21 @@ export const CalendarTracker = () => {
         }
       });
     }
-  }, [appSettingsInitialized]);
+  };
 
-  const toggleDate = (date: string) => {
+  useEffect(() => {
+    fetchData();
+
+    const intervalId = setInterval(fetchData, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const toggleDate = (date: string | undefined) => {
     const emptyObject: TouchedObjType = {};
+
+    if (!date) {
+      return;
+    }
 
     // Controllo se è una data con il dot oppure no
     if (Object.keys(touchedDate).find((k) => k === date)) {
@@ -74,6 +76,8 @@ export const CalendarTracker = () => {
           const keys = Object.keys(touchedDate);
           const isSelected = keys.includes(date?.dateString ?? "");
           const isDisabled = state === "disabled";
+          const today = new Date().toISOString().split("T")[0];
+          const isToday = today === date?.dateString;
           return (
             <TouchableWithoutFeedback
               disabled={state === "disabled"}
@@ -84,13 +88,14 @@ export const CalendarTracker = () => {
                   opacity: isDisabled ? 0.5 : 1,
                   borderRadius: 10,
                   borderColor: "black",
-                  borderWidth: 0.5,
+                  borderWidth: today === date?.dateString ? 2 : 0.5,
                   alignItems: "center",
                   justifyContent: "center",
                   width: 50,
                   height: 95,
                 }}
               >
+                {isToday ? <Text variant="titleSmall">Today</Text> : <></>}
                 <Text
                   style={{
                     padding: 5,

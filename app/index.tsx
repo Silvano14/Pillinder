@@ -55,7 +55,7 @@ export default function Index() {
       )}
     >
       <Tab.Screen
-        name="calendar"
+        name="Calendar"
         component={CalendarTracker}
         options={{
           tabBarLabel: "Calendar",
@@ -65,7 +65,7 @@ export default function Index() {
         }}
       />
       <Tab.Screen
-        name="settings"
+        name="Settings"
         component={Configuration}
         options={{
           tabBarLabel: "Settings",

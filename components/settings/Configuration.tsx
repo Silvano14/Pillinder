@@ -24,7 +24,7 @@ const showToast = (
     text1,
   });
 };
-const Configuration = () => {
+const Configuration = ({ navigation }) => {
   const [dailyNotification, setDailyNotification] = useState<
     | {
         hour?: number;
@@ -38,7 +38,6 @@ const Configuration = () => {
     try {
       const notifications =
         await Notifications.getAllScheduledNotificationsAsync();
-      console.log("notifications", notifications);
       if (notifications.length) {
         setDailyNotification({
           hour: notifications[0].trigger.dateComponents.hour,
@@ -65,6 +64,19 @@ const Configuration = () => {
       .catch(() => showToast("error", "Error occured"));
   };
 
+  const setTime = (field: "hour" | "minute", value: string) => {
+    let result: number | string = parseInt(value);
+    if (isNaN(result)) {
+      result = "";
+    }
+
+    setDailyNotification({
+      ...dailyNotification,
+      [field]: result,
+      repeats: true,
+    });
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
@@ -84,31 +96,26 @@ const Configuration = () => {
               keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
               label={"Hour"}
               style={styles.input}
-              value={dailyNotification?.hour?.toString() ?? undefined}
+              value={dailyNotification?.hour?.toString() ?? ""}
               onChangeText={(e) => {
-                setDailyNotification({
-                  ...dailyNotification,
-                  hour: parseInt(e),
-                  repeats: true,
-                });
+                setTime("hour", e);
               }}
             />
             <TextInput
               keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
               style={styles.input}
               label={"Minute"}
-              value={dailyNotification?.minute?.toString() ?? undefined}
+              value={dailyNotification?.minute?.toString() ?? ""}
               onChangeText={(e) => {
-                setDailyNotification({
-                  ...dailyNotification,
-                  minute: parseInt(e),
-                  repeats: true,
-                });
+                setTime("minute", e);
               }}
             />
           </View>
         </View>
-        <Notify trigger={dailyNotification as DailyTriggerInput}></Notify>
+        <Notify
+          navigation={navigation}
+          trigger={dailyNotification as DailyTriggerInput}
+        ></Notify>
         <Button
           mode="contained"
           onPress={() => {

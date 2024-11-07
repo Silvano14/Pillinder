@@ -1,18 +1,33 @@
-import { AppSettingsContextProvider } from "@/context/AppSettingsContextProvider";
 import { Stack } from "expo-router";
 import React from "react";
+import { View, SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   return (
     <PaperProvider>
-      <AppSettingsContextProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ title: "Pill reminder" }} />
-        </Stack>
-      </AppSettingsContextProvider>
+      <MyStatusBar backgroundColor="#E01BAE" barStyle="light-content" />
+      <Stack>
+        <Stack.Screen name="index" options={{ title: "Pill reminder" }} />
+      </Stack>
       <Toast />
     </PaperProvider>
   );
 }
+const MyStatusBar = ({ backgroundColor, ...props }) => (
+  <View style={[styles.statusBar, { backgroundColor }]}>
+    <SafeAreaView>
+      <StatusBar translucent backgroundColor={backgroundColor} {...props} />
+    </SafeAreaView>
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  statusBar: {
+    height: 50,
+  },
+});
