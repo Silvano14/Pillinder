@@ -47,7 +47,7 @@ const showToast = () => {
   });
 };
 
-type Props = { trigger: DailyTriggerInput | undefined };
+type Props = { trigger: DailyTriggerInput | undefined; navigation: any };
 
 const Notify: FC<Props> = ({ trigger, navigation }) => {
   const [notificationPermissions, setNotificationPermissions] =

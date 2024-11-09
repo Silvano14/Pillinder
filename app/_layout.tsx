@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { View, SafeAreaView, StatusBar, StyleSheet } from "react-native";
+import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
 

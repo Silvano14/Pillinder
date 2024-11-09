@@ -14,6 +14,7 @@ import { Button, TextInput } from "react-native-paper";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import Notify from "../notifications/Notify";
 import { DailyTriggerInput } from "expo-notifications";
+import { Link } from "expo-router";
 
 const showToast = (
   type: ToastShowParams["type"],
@@ -125,6 +126,9 @@ const Configuration = ({ navigation }) => {
         >
           Clear schedules
         </Button>
+        <Link href="/startDate">
+          <Button mode="contained">Set start date</Button>
+        </Link>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );

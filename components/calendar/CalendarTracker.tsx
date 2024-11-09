@@ -1,4 +1,5 @@
-import { getAllItems, mergeItem, setItem } from "@/utils/AsyncStorage";
+import { getAllItems, getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
+import { isBetween21And28Days } from "@/utils/dateUtils";
 import React, { useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -11,24 +12,20 @@ type TouchedObjType = {
 
 export const CalendarTracker = () => {
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
-
+  const [startDate, setStartDate] = useState<string>();
   const fetchData = () => {
-    if (
-      Object.keys(touchedDate).length === 0 &&
-      touchedDate.constructor === Object
-    ) {
-      getAllItems().then((res) => {
-        if (res && "dates" in res) {
-          setTouchedDate(res.dates as TouchedObjType);
-        }
-      });
-    }
+    getItem("dates").then((dates) => {
+      setTouchedDate(dates as TouchedObjType);
+    });
+    getItem("startDate").then((startDate) => {
+      setStartDate(startDate);
+    });
   };
 
   useEffect(() => {
     fetchData();
 
-    const intervalId = setInterval(fetchData, 1000);
+    const intervalId = setInterval(fetchData, 2000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -40,7 +37,7 @@ export const CalendarTracker = () => {
     }
 
     // Controllo se è una data con il dot oppure no
-    if (Object.keys(touchedDate).find((k) => k === date)) {
+    if (touchedDate && Object.keys(touchedDate).find((k) => k === date)) {
       Object.assign(emptyObject, touchedDate);
 
       delete emptyObject[date];
@@ -73,7 +70,18 @@ export const CalendarTracker = () => {
           ...touchedDate,
         }}
         dayComponent={({ date, state }) => {
-          const keys = Object.keys(touchedDate);
+          let isShowCheckboxx = true;
+          if (startDate && date?.timestamp) {
+            const timeA = new Date(startDate).getTime();
+            const timeB = new Date(date.timestamp).getTime();
+            isShowCheckboxx = !isBetween21And28Days(timeA, timeB);
+          }
+          let keys = [];
+
+          if (touchedDate) {
+            keys = Object.keys(touchedDate);
+          }
+
           const isSelected = keys.includes(date?.dateString ?? "");
           const isDisabled = state === "disabled";
           const today = new Date().toISOString().split("T")[0];
@@ -105,12 +113,14 @@ export const CalendarTracker = () => {
                 >
                   {date?.day}
                 </Text>
-                <BouncyCheckbox
-                  disabled={isDisabled}
-                  isChecked={isSelected}
-                  disableText
-                  onPress={() => toggleDate(date?.dateString)}
-                />
+                {isShowCheckboxx && (
+                  <BouncyCheckbox
+                    disabled={isDisabled}
+                    isChecked={isSelected}
+                    disableText
+                    onPress={() => toggleDate(date?.dateString)}
+                  />
+                )}
               </View>
             </TouchableWithoutFeedback>
           );
