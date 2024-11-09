@@ -10,11 +10,12 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { Button, TextInput } from "react-native-paper";
+import { Button, Checkbox, TextInput } from "react-native-paper";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import Notify from "../notifications/Notify";
 import { DailyTriggerInput } from "expo-notifications";
 import { Link } from "expo-router";
+import { BreakDays } from "./BreakDays";
 
 const showToast = (
   type: ToastShowParams["type"],
@@ -84,12 +85,6 @@ const Configuration = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        <View>
-          <Button onPress={clearData} mode="contained-tonal">
-            Clear all pills (restart app)
-          </Button>
-        </View>
-
         <View style={styles.containerNotifications}>
           <Text style={styles.label}>Daily schedule</Text>
           <View style={styles.wrapperInput}>
@@ -112,23 +107,23 @@ const Configuration = ({ navigation }) => {
               }}
             />
           </View>
+          <Notify
+            navigation={navigation}
+            trigger={dailyNotification as DailyTriggerInput}
+          ></Notify>
+          <Button
+            mode="contained"
+            onPress={() => {
+              setDailyNotification(undefined);
+              onClearNotifications();
+            }}
+          >
+            Clear schedules
+          </Button>
         </View>
-        <Notify
-          navigation={navigation}
-          trigger={dailyNotification as DailyTriggerInput}
-        ></Notify>
-        <Button
-          mode="contained"
-          onPress={() => {
-            setDailyNotification(undefined);
-            onClearNotifications();
-          }}
-        >
-          Clear schedules
-        </Button>
-        <Link href="/startDate">
-          <Button mode="contained">Set start date</Button>
-        </Link>
+        <View style={styles.wrapperBreakDates}>
+          <BreakDays />
+        </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -144,6 +139,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     borderWidth: 1,
+    gap: 4,
   },
   input: {
     flex: 1,
@@ -156,6 +152,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 25,
     marginBottom: 8,
+  },
+  wrapperBreakDates: {
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

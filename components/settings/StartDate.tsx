@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Button } from "react-native-paper";
+import { Button, Checkbox } from "react-native-paper";
 import { setItem } from "@/utils/AsyncStorage";
 
 export const StartDate = () => {
