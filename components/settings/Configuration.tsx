@@ -1,20 +1,15 @@
-import { clear } from "@/utils/AsyncStorage";
 import * as Notifications from "expo-notifications";
-import React, { useEffect, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import { Button, Checkbox, TextInput } from "react-native-paper";
+  DailyTriggerInput,
+  NotificationRequest,
+  SchedulableTriggerInputTypes,
+} from "expo-notifications";
+import React, { useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Button } from "react-native-paper";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import Notify from "../notifications/Notify";
-import { DailyTriggerInput } from "expo-notifications";
-import { Link } from "expo-router";
+import { HourModal } from "../time/HourModal";
 import { BreakDays } from "./BreakDays";
 
 const showToast = (
@@ -26,27 +21,20 @@ const showToast = (
     text1,
   });
 };
+
 const Configuration = ({ navigation }) => {
   const [dailyNotification, setDailyNotification] = useState<
-    | {
-        hour?: number;
-        minute?: number;
-        repeats: boolean;
-      }
-    | undefined
-  >();
+    DailyTriggerInput | undefined
+  >(undefined);
+  const [notifications, setNotifications] = useState<NotificationRequest[]>([]);
 
   const fetchScheduledNotifications = async () => {
     try {
       const notifications =
         await Notifications.getAllScheduledNotificationsAsync();
-      if (notifications.length) {
-        setDailyNotification({
-          hour: notifications[0].trigger.dateComponents.hour,
-          minute: notifications[0].trigger.dateComponents.minute,
-          repeats: true,
-        });
-      }
+      console.log(notifications);
+      setNotifications(notifications);
+      console.log(notifications[0].trigger?.dateComponents);
     } catch (error) {
       console.log("Errore nel recuperare le notifiche programmate:", error);
     }
@@ -56,76 +44,56 @@ const Configuration = ({ navigation }) => {
     fetchScheduledNotifications();
   }, []);
 
-  const clearData = () => {
-    clear();
-  };
-
   const onClearNotifications = () => {
     Notifications.cancelAllScheduledNotificationsAsync()
       .then(() => showToast("success", "Cancelled all notifications scheduled"))
       .catch(() => showToast("error", "Error occured"));
   };
 
-  const setTime = (field: "hour" | "minute", value: string) => {
-    let result: number | string = parseInt(value);
-    if (isNaN(result)) {
-      result = "";
+  const currentTimer = useMemo(() => {
+    if (notifications.length) {
+      const firstNotificationTrigger = notifications[0]?.trigger ?? {};
+      if (
+        firstNotificationTrigger &&
+        "dateComponents" in firstNotificationTrigger
+      ) {
+        return `${firstNotificationTrigger.dateComponents.hour}:${firstNotificationTrigger.dateComponents.minute}`;
+      }
     }
-
-    setDailyNotification({
-      ...dailyNotification,
-      [field]: result,
-      repeats: true,
-    });
-  };
+  }, [notifications]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
-        <View style={styles.containerNotifications}>
-          <Text style={styles.label}>Daily schedule</Text>
-          <View style={styles.wrapperInput}>
-            <TextInput
-              keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
-              label={"Hour"}
-              style={styles.input}
-              value={dailyNotification?.hour?.toString() ?? ""}
-              onChangeText={(e) => {
-                setTime("hour", e);
-              }}
-            />
-            <TextInput
-              keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
-              style={styles.input}
-              label={"Minute"}
-              value={dailyNotification?.minute?.toString() ?? ""}
-              onChangeText={(e) => {
-                setTime("minute", e);
-              }}
-            />
-          </View>
-          <Notify
-            navigation={navigation}
-            trigger={dailyNotification as DailyTriggerInput}
-          ></Notify>
-          <Button
-            mode="contained"
-            onPress={() => {
-              setDailyNotification(undefined);
-              onClearNotifications();
-            }}
-          >
-            Clear schedules
-          </Button>
-        </View>
-        <View style={styles.wrapperBreakDates}>
-          <BreakDays />
-        </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+    <View style={styles.container}>
+      <View style={styles.containerNotifications}>
+        <Text style={styles.label}>Daily schedule</Text>
+        <HourModal
+          onConfirm={function (val: Date): void {
+            setDailyNotification({
+              hour: val.getHours(),
+              minute: val.getMinutes(),
+              type: SchedulableTriggerInputTypes.DAILY,
+            });
+          }}
+        />
+
+        <Text>Currently active notifications: {notifications.length}</Text>
+        <Text>at time: {currentTimer}</Text>
+
+        <Notify navigation={navigation} trigger={dailyNotification}></Notify>
+        <Button
+          mode="contained"
+          onPress={() => {
+            setDailyNotification(undefined);
+            onClearNotifications();
+          }}
+        >
+          Clear schedules
+        </Button>
+      </View>
+      <View style={styles.wrapperBreakDates}>
+        <BreakDays />
+      </View>
+    </View>
   );
 };
 

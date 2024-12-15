@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Button, Checkbox } from "react-native-paper";
 import { setItem } from "@/utils/AsyncStorage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import React, { useState } from "react";
+import { View } from "react-native";
+import { Button } from "react-native-paper";
 
 export const StartDate = () => {
   const [date, setDate] = useState(new Date());
@@ -16,8 +17,14 @@ export const StartDate = () => {
   };
 
   return (
-    <>
+    <View
+      style={{
+        borderRadius: "10%",
+        padding: 10,
+      }}
+    >
       <DateTimePicker
+        themeVariant="light"
         display="inline"
         value={date}
         mode={"date"}
@@ -26,6 +33,6 @@ export const StartDate = () => {
       <Button mode="contained" onPress={setStartDate}>
         Save
       </Button>
-    </>
+    </View>
   );
 };

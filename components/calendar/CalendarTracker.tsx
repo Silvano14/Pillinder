@@ -1,4 +1,4 @@
-import { getAllItems, getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
+import { getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
 import { isBetween21And28Days } from "@/utils/dateUtils";
 import React, { useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
@@ -24,9 +24,6 @@ export const CalendarTracker = () => {
 
   useEffect(() => {
     fetchData();
-
-    const intervalId = setInterval(fetchData, 2000);
-    return () => clearInterval(intervalId);
   }, []);
 
   const toggleDate = (date: string | undefined) => {
@@ -76,7 +73,7 @@ export const CalendarTracker = () => {
             const timeB = new Date(date.timestamp).getTime();
             isShowCheckboxx = !isBetween21And28Days(timeA, timeB);
           }
-          let keys = [];
+          let keys: string[] = [];
 
           if (touchedDate) {
             keys = Object.keys(touchedDate);

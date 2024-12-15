@@ -6,6 +6,7 @@ import {
   DailyTriggerInput,
   NotificationResponse,
   NotificationTriggerInput,
+  SchedulableTriggerInputTypes,
 } from "expo-notifications";
 import React, { FC, useEffect, useState } from "react";
 import { Button } from "react-native-paper";
@@ -54,7 +55,10 @@ const Notify: FC<Props> = ({ trigger, navigation }) => {
     useState<PermissionStatus>(PermissionStatus.UNDETERMINED);
 
   const scheduleNotification = (
-    trigger: NotificationTriggerInput = { seconds: 2 }
+    trigger: NotificationTriggerInput = {
+      seconds: 2,
+      type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+    }
   ) => {
     Notifications.cancelAllScheduledNotificationsAsync().then(() => {
       const schedulingOptions = {
@@ -104,7 +108,10 @@ const Notify: FC<Props> = ({ trigger, navigation }) => {
         const isNumber = parseInt(notification.userText);
         if (!isNaN(isNumber)) {
           const seconds = isNumber * 60;
-          scheduleNotification({ seconds });
+          scheduleNotification({
+            seconds,
+            type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+          });
         }
       }
     }
@@ -132,7 +139,6 @@ const Notify: FC<Props> = ({ trigger, navigation }) => {
     <>
       <Button
         mode="contained"
-        style={{ opacity: trigger ? 1 : 0.5 }}
         onPress={() => {
           if (trigger) {
             scheduleNotification(trigger);
