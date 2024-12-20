@@ -145,7 +145,7 @@ const Notify: FC<Props> = ({ trigger, navigation }) => {
           }
         }}
       >
-        Schedule notifications
+        Schedule
       </Button>
       <Button
         mode="contained"

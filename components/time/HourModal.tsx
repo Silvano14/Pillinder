@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { Button, View } from "react-native";
+import { Button } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 type Props = {
@@ -24,7 +24,7 @@ export const HourModal: FC<Props> = ({ onConfirm }) => {
   };
 
   return (
-    <View>
+    <>
       <Button title="Show Date Picker" onPress={showDatePicker} />
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
@@ -32,6 +32,6 @@ export const HourModal: FC<Props> = ({ onConfirm }) => {
         onConfirm={handleConfirm}
         onCancel={hideDatePicker}
       />
-    </View>
+    </>
   );
 };

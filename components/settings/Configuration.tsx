@@ -10,7 +10,6 @@ import { Button } from "react-native-paper";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import Notify from "../notifications/Notify";
 import { HourModal } from "../time/HourModal";
-import { BreakDays } from "./BreakDays";
 
 const showToast = (
   type: ToastShowParams["type"],
@@ -32,9 +31,7 @@ const Configuration = ({ navigation }) => {
     try {
       const notifications =
         await Notifications.getAllScheduledNotificationsAsync();
-      console.log(notifications);
       setNotifications(notifications);
-      console.log(notifications[0].trigger?.dateComponents);
     } catch (error) {
       console.log("Errore nel recuperare le notifiche programmate:", error);
     }
@@ -46,18 +43,31 @@ const Configuration = ({ navigation }) => {
 
   const onClearNotifications = () => {
     Notifications.cancelAllScheduledNotificationsAsync()
-      .then(() => showToast("success", "Cancelled all notifications scheduled"))
-      .catch(() => showToast("error", "Error occured"));
+      .then(() => {
+        showToast("success", "Cancelled all notifications scheduled");
+      })
+      .catch((err) => {
+        console.error(err);
+        showToast("error", "Error occured");
+      });
   };
 
   const currentTimer = useMemo(() => {
     if (notifications.length) {
-      const firstNotificationTrigger = notifications[0]?.trigger ?? {};
+      const firstNotificationTrigger = notifications[0]
+        ?.trigger as DailyTriggerInput;
       if (
         firstNotificationTrigger &&
+        typeof firstNotificationTrigger === "object" &&
         "dateComponents" in firstNotificationTrigger
       ) {
-        return `${firstNotificationTrigger.dateComponents.hour}:${firstNotificationTrigger.dateComponents.minute}`;
+        const dateComponents = firstNotificationTrigger.dateComponents as {
+          hour: number;
+          minute: number;
+        };
+        return `${dateComponents.hour}:${dateComponents.minute
+          .toString()
+          .padStart(2, "0")}`;
       }
     }
   }, [notifications]);
@@ -65,33 +75,51 @@ const Configuration = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.containerNotifications}>
-        <Text style={styles.label}>Daily schedule</Text>
-        <HourModal
-          onConfirm={function (val: Date): void {
-            setDailyNotification({
-              hour: val.getHours(),
-              minute: val.getMinutes(),
-              type: SchedulableTriggerInputTypes.DAILY,
-            });
-          }}
-        />
+        <View style={styles.title}>
+          <Text style={styles.label}>Scheduler</Text>
+        </View>
+        <View style={styles.datePickerContainer}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <HourModal
+              onConfirm={function (val: Date): void {
+                setDailyNotification({
+                  hour: val.getHours(),
+                  minute: val.getMinutes(),
+                  type: SchedulableTriggerInputTypes.DAILY,
+                });
+              }}
+            />
+            <Text>
+              selected: {dailyNotification?.hour ?? "-"}:
+              {dailyNotification?.minute.toString().padStart(2, "0") ?? "-"}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.containerSchedulation}>
+          <Text>Currently active notifications at time: {currentTimer}</Text>
 
-        <Text>Currently active notifications: {notifications.length}</Text>
-        <Text>at time: {currentTimer}</Text>
-
-        <Notify navigation={navigation} trigger={dailyNotification}></Notify>
-        <Button
-          mode="contained"
-          onPress={() => {
-            setDailyNotification(undefined);
-            onClearNotifications();
-          }}
-        >
-          Clear schedules
-        </Button>
-      </View>
-      <View style={styles.wrapperBreakDates}>
-        <BreakDays />
+          <View style={styles.containerButtons}>
+            <Notify
+              navigation={navigation}
+              trigger={dailyNotification}
+            ></Notify>
+            <Button
+              mode="contained"
+              onPress={() => {
+                setDailyNotification(undefined);
+                onClearNotifications();
+              }}
+            >
+              Clear schedules
+            </Button>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -100,32 +128,36 @@ const Configuration = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     gap: 4,
+  },
+  title: {
+    paddingInline: 10,
+    borderBottomWidth: 1,
+  },
+  containerSchedulation: {
+    paddingInline: 10,
+    gap: 4,
+  },
+  containerButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 2,
+  },
+  datePickerContainer: {
+    alignItems: "flex-start",
+
+    flexDirection: "row",
+    gap: 1,
   },
   containerNotifications: {
     padding: 15,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     gap: 4,
-  },
-  input: {
-    flex: 1,
-    gap: 2,
-    marginHorizontal: 2,
-  },
-  wrapperInput: {
-    flexDirection: "row",
   },
   label: {
     fontSize: 25,
-    marginBottom: 8,
-  },
-  wrapperBreakDates: {
-    flexDirection: "row",
-    gap: 4,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingBottom: 8,
   },
 });
 
