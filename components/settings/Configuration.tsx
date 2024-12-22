@@ -70,6 +70,7 @@ const Configuration = ({ navigation }) => {
           .padStart(2, "0")}`;
       }
     }
+    return "No notifications scheduled";
   }, [notifications]);
 
   return (

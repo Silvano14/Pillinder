@@ -1,5 +1,4 @@
-import { getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
-import { isBetween21And28Days } from "@/utils/dateUtils";
+import { getAllKeys, getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
 import React, { useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -12,20 +11,15 @@ type TouchedObjType = {
 
 export const CalendarTracker = () => {
   const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
-  const [startDate, setStartDate] = useState<string>();
   const fetchData = () => {
     getItem("dates").then((dates) => {
       setTouchedDate(dates as TouchedObjType);
-    });
-    getItem("startDate").then((startDate) => {
-      setStartDate(startDate);
     });
   };
 
   useEffect(() => {
     fetchData();
   }, []);
-
   const toggleDate = (date: string | undefined) => {
     const emptyObject: TouchedObjType = {};
 
@@ -63,16 +57,8 @@ export const CalendarTracker = () => {
         onDayPress={(day) => {
           toggleDate(day.dateString);
         }}
-        markedDates={{
-          ...touchedDate,
-        }}
+        markedDates={touchedDate}
         dayComponent={({ date, state }) => {
-          let isShowCheckboxx = true;
-          if (startDate && date?.timestamp) {
-            const timeA = new Date(startDate).getTime();
-            const timeB = new Date(date.timestamp).getTime();
-            isShowCheckboxx = !isBetween21And28Days(timeA, timeB);
-          }
           let keys: string[] = [];
 
           if (touchedDate) {
@@ -110,9 +96,8 @@ export const CalendarTracker = () => {
                 >
                   {date?.day}
                 </Text>
-                {isShowCheckboxx && (
+                {state !== "disabled" && (
                   <BouncyCheckbox
-                    disabled={isDisabled}
                     isChecked={isSelected}
                     disableText
                     onPress={() => toggleDate(date?.dateString)}
