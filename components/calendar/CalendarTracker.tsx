@@ -1,27 +1,39 @@
-import { getAllKeys, getItem, mergeItem, setItem } from "@/utils/AsyncStorage";
+import {
+  KeysAsyncStorageType,
+  getItem,
+  mergeItem,
+  setItem,
+} from "@/utils/AsyncStorage";
 import React, { useEffect, useState } from "react";
 import { TouchableWithoutFeedback, View } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Calendar } from "react-native-calendars";
 import { Text } from "react-native-paper";
-
-type TouchedObjType = {
-  [key: string]: { selectedDotColor: string; marked: boolean };
-};
+import { DefaultModal } from "../modal/DefaultModal";
 
 export const CalendarTracker = () => {
-  const [touchedDate, setTouchedDate] = useState<TouchedObjType | {}>({});
+  const [touchedDate, setTouchedDate] = useState<
+    KeysAsyncStorageType["dates"] | {}
+  >({});
+  const [visible, setVisible] = useState(false);
+
   const fetchData = () => {
-    getItem("dates").then((dates) => {
-      setTouchedDate(dates as TouchedObjType);
+    getItem("dates").then((dates: KeysAsyncStorageType["dates"]) => {
+      setTouchedDate(dates);
     });
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const showNoteModal = (dateString: string | undefined) => {
+    console.log(dateString);
+    setVisible(true);
+  };
+
   const toggleDate = (date: string | undefined) => {
-    const emptyObject: TouchedObjType = {};
+    const emptyObject: KeysAsyncStorageType["dates"] = {};
 
     if (!date) {
       return;
@@ -52,11 +64,9 @@ export const CalendarTracker = () => {
 
   return (
     <View>
+      <DefaultModal isOpen={visible} />
       <Calendar
         markingType="custom"
-        onDayPress={(day) => {
-          toggleDate(day.dateString);
-        }}
         markedDates={touchedDate}
         dayComponent={({ date, state }) => {
           let keys: string[] = [];
@@ -72,7 +82,9 @@ export const CalendarTracker = () => {
           return (
             <TouchableWithoutFeedback
               disabled={state === "disabled"}
-              onPress={() => toggleDate(date?.dateString)}
+              onPress={() => {
+                showNoteModal(date?.dateString);
+              }}
             >
               <View
                 style={{
@@ -100,7 +112,9 @@ export const CalendarTracker = () => {
                   <BouncyCheckbox
                     isChecked={isSelected}
                     disableText
-                    onPress={() => toggleDate(date?.dateString)}
+                    onPress={() => {
+                      showNoteModal(date?.dateString);
+                    }}
                   />
                 )}
               </View>

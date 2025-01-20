@@ -25,7 +25,7 @@ export const HourModal: FC<Props> = ({ onConfirm }) => {
 
   return (
     <>
-      <Button title="Show Date Picker" onPress={showDatePicker} />
+      <Button title="Set reminder times" onPress={showDatePicker} />
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="time"

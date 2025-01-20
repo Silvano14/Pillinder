@@ -51,16 +51,31 @@ export const getAllKeys = async () => {
   }
 };
 
-export const getAllItems = async () => {
+export const getAllItems = async (): Promise<
+  KeysAsyncStorageType | undefined
+> => {
   try {
     const keys = await AsyncStorage.getAllKeys();
     const items = await AsyncStorage.multiGet(keys);
     return items.reduce((accumulator, [key, value]) => {
       accumulator[key] = JSON.parse(value);
       return accumulator;
-    }, {});
+    }, {} as KeysAsyncStorageType);
   } catch (error) {
     console.error("Error getting all items:", error);
-    return {};
   }
 };
+
+interface MarkedDate {
+  marked: boolean;
+  notes?: string;
+}
+
+interface Dates {
+  [key: string]: MarkedDate;
+}
+
+export interface KeysAsyncStorageType {
+  dates?: Dates;
+  startDate?: string;
+}
